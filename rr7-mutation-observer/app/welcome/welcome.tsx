@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useState, createElement } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { usePostHog } from "posthog-js/react";
@@ -14,16 +14,14 @@ export function Welcome() {
   const posthog = usePostHog();
 
   useEffect(() => {
-    console.info(posthog.config);
-
-    // const id = crypto.randomUUID().replace(/-/g, "");
-    // posthog.identify(id, {
-    //   email: `${id}@helloworld.com`,
-    //   name: id,
-    // });
+    const id = posthog.get_distinct_id();
+    posthog.identify(id, {
+      email: `${id}@helloworld.com`,
+      name: id,
+    });
     posthog.capture("$pageview");
 
-    console.info(posthog.get_distinct_id());
+    console.info(posthog.getFeatureFlag("test-experiment"));
   }, [posthog]);
 
   return (
@@ -34,9 +32,11 @@ export function Welcome() {
             <div className="flex justify-between text-2xl border-b border-gray-700 pb-2 mb-2">
               <h2>Creds</h2>
 
-              <div>
-                <Button>Toggle element injection panel</Button>
-              </div>
+              {creds.length % 2 === 0 && (
+                <div id="toggler" data-creds-count={creds.length}>
+                  <Button>Toggle element injection panel</Button>
+                </div>
+              )}
             </div>
 
             <ul className="list-disc space-y-2">
@@ -80,10 +80,6 @@ export function Welcome() {
                     },
                   ])
                 );
-                posthog.capture("$feature_flag_called", {
-                  $feature_flag_response: "test",
-                  $feature_flag: "test-experiment",
-                });
               }}
             >
               <Input type="text" name="username" placeholder="username" />

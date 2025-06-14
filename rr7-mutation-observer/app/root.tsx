@@ -6,11 +6,15 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { useEffect } from "react";
-import { PostHogProvider } from "posthog-js/react";
+import React, { useEffect } from "react";
+import ReactDOM from "react-dom/client";
+import { PHProvider } from "./components/provider/posthog";
+import { useLocation } from "react-router";
+import { Button } from "./components/ui/button";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import "./window";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -26,23 +30,24 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+
   useEffect(() => {
-    const callback: MutationCallback = (mutationList, observer) => {
-      for (const mutation of mutationList) {
-      }
-    };
-
-    // Create an observer instance linked to the callback function
-    const observer = new MutationObserver(callback);
-
-    // Start observing the target node for configured mutations
-    const config = { childList: true, subtree: true };
-    observer.observe(document.body, config);
-
-    return () => {
-      observer.disconnect();
+    window.mutationHandler.register({
+      components: { Button },
+      React,
+      ReactDOM,
+    });
+    window.mutationHandler.pathInfo = {
+      baseDynamicPath: location.pathname,
     };
   }, []);
+
+  useEffect(() => {
+    window.mutationHandler.pathInfo = {
+      baseDynamicPath: location.pathname,
+    };
+  }, [location.pathname]);
 
   return (
     <html lang="en">
@@ -53,20 +58,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <PostHogProvider
-          apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY!}
-          options={{
-            api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-            // api_host:
-            //   "https://webhook.site/d90e0252-f72e-4493-ae40-84a1f93a9332",
-            defaults: "2025-05-24",
-          }}
-        >
+        <PHProvider>
           {children}
-        </PostHogProvider>
 
-        <ScrollRestoration />
-        <Scripts />
+          <ScrollRestoration />
+          <Scripts />
+        </PHProvider>
       </body>
     </html>
   );
