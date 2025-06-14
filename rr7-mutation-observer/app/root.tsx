@@ -6,7 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { useEffect } from 'react'
+import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -26,15 +26,13 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const callback = (mutationList, observer) => {
+    const callback: MutationCallback = (mutationList, observer) => {
       for (const mutation of mutationList) {
         if (mutation.type === "childList") {
           console.log("A child node has been added or removed.");
-        } else if (mutation.type === "attributes") {
-          console.log(`The ${mutation.attributeName} attribute was modified.`);
         }
 
-        console.log(mutation)
+        console.log(mutation);
       }
     };
 
@@ -42,13 +40,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const observer = new MutationObserver(callback);
 
     // Start observing the target node for configured mutations
-    const config = { attributes: true, childList: true, subtree: true };
+    const config = { childList: true, subtree: true };
     observer.observe(document.body, config);
 
     return () => {
       observer.disconnect();
-    }
-  }, [])
+    };
+  }, []);
 
   return (
     <html lang="en">

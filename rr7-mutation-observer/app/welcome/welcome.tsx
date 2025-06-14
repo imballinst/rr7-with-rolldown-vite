@@ -1,6 +1,8 @@
-import { useState, HTMLProps } from "react";
+import { useState, type JSX } from "react";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 interface Creds {
   id: string;
@@ -9,51 +11,31 @@ interface Creds {
 }
 
 export function Welcome() {
-  const [count, setCount] = useState(0);
   const [creds, setCreds] = useState<Creds[]>([]);
 
   return (
-    <main className="flex items-center justify-center pt-16 pb-4">
+    <main className="flex items-center justify-center mt-16 p-4">
       <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
-        <header className="flex flex-col items-center gap-9">
-          <div className="w-[500px] max-w-[100vw] p-4">
-            <img
-              src={logoLight}
-              alt="React Router"
-              className="block w-full dark:hidden"
-            />
-            <img
-              src={logoDark}
-              alt="React Router"
-              className="hidden w-full dark:block"
-            />
-          </div>
-        </header>
         <div className="w-full space-y-6 px-4">
-          <div>
-            <span hidden={count % 2 === 0}>{count}</span>
-
-            <button
-              onClick={() => {
-                setCount((prev) => prev + 1);
-              }}
-            >
-              Increment
-            </button>
-          </div>
-
           <section>
-            <h2>Creds</h2>
+            <div className="flex justify-between text-2xl border-b border-gray-700 pb-2 mb-2">
+              <h2>Creds</h2>
 
-            <ul>
+              <div>
+                <Button>Toggle element injection panel</Button>
+              </div>
+            </div>
+
+            <ul className="list-disc space-y-2">
               {creds.map((c, idx) => (
                 <li key={c.id}>
                   <div className="flex gap-x-2">
-                    <div>
-                      {c.username} - {c.password}
-                    </div>
+                    <div className="flex items-center w-full">{c.username}</div>
+                    <div className="flex items-center w-full">{c.password}</div>
 
-                    <button
+                    <Button
+                      variant="outline"
+                      className="min-w-[105px]"
                       onClick={() => {
                         setCreds((prev) => {
                           const newCreds = [...prev];
@@ -63,50 +45,45 @@ export function Welcome() {
                       }}
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </li>
               ))}
             </ul>
 
             <form
-              className="flex gap-x-2"
+              className="flex gap-x-2 mt-2"
               onSubmit={(e) => {
                 e.preventDefault();
 
                 const formData = new FormData(e.currentTarget);
-                console.info(
-                  {
-                    id: crypto.randomUUID(),
-                    username: formData.get("username"),
-                    password: formData.get("password"),
-                  },
-                  Object.fromEntries(formData)
-                );
 
                 setCreds((prev) =>
-                  prev.concat({
-                    id: crypto.randomUUID(),
-                    username: formData.get("username"),
-                    password: formData.get("password"),
-                  })
+                  prev.concat([
+                    {
+                      id: crypto.randomUUID(),
+                      username: (formData.get("username") as string) ?? "",
+                      password: (formData.get("password") as string) ?? "",
+                    },
+                  ])
                 );
+
+                const script = document.createElement("script");
+                script.textContent =
+                  'console.log("Hello from injected script");';
+                document.body.appendChild(script);
               }}
             >
-              <input type="text" name="username" placeholder="username" />
-              <input type="password" name="password" placeholder="password" />
+              <Input type="text" name="username" placeholder="username" />
+              <Input type="password" name="password" placeholder="password" />
 
-              <button className="min-w-24" type="submit">
+              <Button variant="outline" className="min-w-[105px]" type="submit">
                 Add creds
-              </button>
+              </Button>
             </form>
           </section>
         </div>
       </div>
     </main>
   );
-}
-
-function Button({ className, ...props }: HTMLProps<HTMLButtonElement>) {
-  return <button {...props} className={`${className} border border-gray-200`} />
 }
