@@ -1,8 +1,7 @@
-import { useState, type JSX } from "react";
-import logoDark from "./logo-dark.svg";
-import logoLight from "./logo-light.svg";
+import { useEffect, useState, type JSX } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { usePostHog } from "posthog-js/react";
 
 interface Creds {
   id: string;
@@ -12,6 +11,20 @@ interface Creds {
 
 export function Welcome() {
   const [creds, setCreds] = useState<Creds[]>([]);
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    console.info(posthog.config);
+
+    // const id = crypto.randomUUID().replace(/-/g, "");
+    // posthog.identify(id, {
+    //   email: `${id}@helloworld.com`,
+    //   name: id,
+    // });
+    posthog.capture("$pageview");
+
+    console.info(posthog.get_distinct_id());
+  }, [posthog]);
 
   return (
     <main className="flex items-center justify-center mt-16 p-4">
@@ -67,11 +80,10 @@ export function Welcome() {
                     },
                   ])
                 );
-
-                const script = document.createElement("script");
-                script.textContent =
-                  'console.log("Hello from injected script");';
-                document.body.appendChild(script);
+                posthog.capture("$feature_flag_called", {
+                  $feature_flag_response: "test",
+                  $feature_flag: "test-experiment",
+                });
               }}
             >
               <Input type="text" name="username" placeholder="username" />

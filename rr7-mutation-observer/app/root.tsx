@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 import { useEffect } from "react";
+import { PostHogProvider } from "posthog-js/react";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -28,11 +29,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const callback: MutationCallback = (mutationList, observer) => {
       for (const mutation of mutationList) {
-        if (mutation.type === "childList") {
-          console.log("A child node has been added or removed.");
-        }
-
-        console.log(mutation);
       }
     };
 
@@ -57,7 +53,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <PostHogProvider
+          apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY!}
+          options={{
+            api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+            // api_host:
+            //   "https://webhook.site/d90e0252-f72e-4493-ae40-84a1f93a9332",
+            defaults: "2025-05-24",
+          }}
+        >
+          {children}
+        </PostHogProvider>
+
         <ScrollRestoration />
         <Scripts />
       </body>
